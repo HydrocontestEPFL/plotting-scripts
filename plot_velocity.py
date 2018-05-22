@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas
+# import pandas
 
 def time_index(time_data, t_ref):
     if t_ref is None:
@@ -17,8 +17,12 @@ t_end   = None # set to None for end
 
 file = 'heliceprincipaletest2/_xsens_publisher_node_filter_xs_velocity.csv'
 
-df = pandas.read_csv(file, sep=';')
-data = df[['time_stamp', 'x', 'y', 'z']].copy().values
+# [time_ns, x, y, z]
+data = np.loadtxt(file, delimiter=';', skiprows=1, usecols=(0,5,6,7))
+
+# print(data)
+# df = pandas.read_csv(file, sep=';')
+# data = df[['time_stamp', 'x', 'y', 'z']].copy().values
 
 i_start = time_index(data[:,0], t_start)
 i_end = time_index(data[:,0], t_end)
@@ -31,4 +35,6 @@ plt.title('Velocity')
 plt.xlabel('time [s]')
 plt.ylabel('v [m/s]')
 plt.plot(t, vel_abs)
-plt.show()
+#plt.show()
+plt.savefig('plot_velocity.png', bbox_inches='tight')
+plt.clf()

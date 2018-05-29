@@ -12,7 +12,7 @@ def time_index(time_data, t_ref):
 
     return len(time_data)-1
 
-def get_timestamps(filename, starttime, duration):
+def get_timestamps(filename, start, stop):
     # get time column
     df = pandas.read_csv(filename, sep=';')
     data = df[['secs']].values[:,0]
@@ -21,10 +21,12 @@ def get_timestamps(filename, starttime, duration):
     day = datetime.datetime.fromtimestamp(data[0]).date()
 
     # add time of day
-    time = datetime.datetime.strptime(starttime, '%H:%M:%S').time()
+    starttime = datetime.datetime.strptime(start, '%H:%M:%S').time()
+    start = datetime.datetime.combine(day, starttime)
 
-    start = datetime.datetime.combine(day, time)
-    stop = start + datetime.timedelta(seconds=duration)
+    # add time of day
+    stoptime = datetime.datetime.strptime(stop, '%H:%M:%S').time()
+    stop = datetime.datetime.combine(day, stoptime)
 
     return start.timestamp(), stop.timestamp()
 
@@ -57,16 +59,16 @@ def extract_lines(file, istart, istop, outfile):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--outdir', default='out', help='output directory name')
+    parser.add_argument('-o', '--outdir', default='out', help='output directory name')
     parser.add_argument('start', type=str, help='start time in format hh:mm:ss')
-    parser.add_argument('duration', type=float, help='duration in seconds')
+    parser.add_argument('stop', type=str, help='stop time in format hh:mm:ss')
     parser.add_argument('files', nargs='+', help='CSV files')
     args = parser.parse_args()
 
     if not os.path.exists(args.outdir):
         os.makedirs(args.outdir)
 
-    start, stop = get_timestamps(args.files[0], args.start, args.duration)
+    start, stop = get_timestamps(args.files[0], args.start, args.stop)
 
     for file in args.files:
         istart, istop = get_index(file, start, stop)

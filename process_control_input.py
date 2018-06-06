@@ -3,19 +3,22 @@ import pandas
 import numpy as np
 import argparse
 
-# settings
+# settings (measured)
 RIGHT_FLAP_CHANNEL = 5
-RIGHT_FLAP_ZERO = 1500
-RIGHT_FLAP_GAIN = 0.0001
+RIGHT_FLAP_GAIN = 0.0008667
+RIGHT_FLAP_OFFSET = -1.233
+
 LEFT_FLAP_CHANNEL = 4
-LEFT_FLAP_ZERO = 1500
-LEFT_FLAP_GAIN = 0.0001
+LEFT_FLAP_GAIN = -0.0009786
+LEFT_FLAP_OFFSET = 1.539
+
 RUDDER_CHANNEL = 2
-RUDDER_ZERO = 1500
-RUDDER_GAIN = 0.0001
+RUDDER_GAIN = 0.001347
+RUDDER_OFFSET = -2.029
+
 THRUST_CHANNEL = 1
-THRUST_ZERO = 1500
-THRUST_GAIN = 0.001
+THRUST_GAIN = 1.0/500 # thrust PWM between 1500us and 2000us
+THRUST_OFFSET = -1500 * THRUST_GAIN
 
 def channel_line(ch):
     return [int(i) for i in ch.strip('[] ').split(',')]
@@ -23,10 +26,10 @@ def channel_line(ch):
 def parse_channels(ch):
     df = pandas.DataFrame()
     ch = np.array([channel_line(line) for line in ch])
-    df['thrust'] = (ch[:,THRUST_CHANNEL-1] - THRUST_ZERO) * THRUST_GAIN
-    df['rudder'] = (ch[:,RUDDER_CHANNEL-1] - RUDDER_ZERO) * RUDDER_GAIN
-    df['left_flap'] = (ch[:,LEFT_FLAP_CHANNEL-1] - LEFT_FLAP_ZERO) * LEFT_FLAP_GAIN
-    df['right_flap'] = (ch[:,RIGHT_FLAP_CHANNEL-1] - RIGHT_FLAP_ZERO) * RIGHT_FLAP_GAIN
+    df['thrust'] = ch[:,THRUST_CHANNEL-1] * THRUST_GAIN + THRUST_OFFSET
+    df['rudder'] = ch[:,RUDDER_CHANNEL-1] * RUDDER_GAIN + RUDDER_OFFSET
+    df['left_flap'] = ch[:,LEFT_FLAP_CHANNEL-1] * LEFT_FLAP_GAIN + LEFT_FLAP_OFFSET
+    df['right_flap'] = ch[:,RIGHT_FLAP_CHANNEL-1] * RIGHT_FLAP_GAIN + RIGHT_FLAP_OFFSET
     return df
 
 def main():
@@ -42,6 +45,9 @@ def main():
     out = pandas.concat([time, ch], axis=1)
 
     out.to_csv(args.outfile, sep=';')
+
+    out[['rudder','left_flap','right_flap']].plot()
+    plt.show()
     print('wrote {} lines to {}'.format(len(out)+1, args.outfile))
 
 if __name__ == '__main__':

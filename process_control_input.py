@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import pandas
 import numpy as np
 import argparse
@@ -46,8 +45,6 @@ def main():
 
     out.to_csv(args.outfile, sep=';')
 
-    out[['rudder','left_flap','right_flap']].plot()
-    plt.show()
     print('wrote {} lines to {}'.format(len(out)+1, args.outfile))
 
 if __name__ == '__main__':
